@@ -1,0 +1,262 @@
+/* Адаптивный слой: планшет (≤1180px) и телефон (≤700px).
+   Типографика на телефоне — по канонам Apple HIG:
+   Title 1 28 / Title 2 22 / Title 3 20 / Body 17 / Subhead 15 / Footnote 13 / Caption 12. */
+
+/* ---------- База: переносы и тач-цели ---------- */
+
+p, li, figcaption {
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+h1, h2 {
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+/* Выпадающие списки категорий и инструментов — только для телефона */
+.category-select, .tool-select { display: none; }
+
+@media (pointer: coarse) {
+  .glass-button { height: 44px; padding-inline: 18px; }
+  .case-study__section-link { min-height: 44px; }
+}
+
+/* ---------- Планшет (≤1180px): каталог складывается в одну колонку ---------- */
+
+@media (max-width: 1180px) {
+  .catalog {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    min-height: 100svh;
+    padding: 16px;
+  }
+  .catalog__sidebar {
+    width: 100%;
+    padding: 22px;
+    gap: 18px;
+  }
+  .categories { display: flex; flex-wrap: wrap; gap: 12px; }
+  .categories .button-row { gap: 8px; }
+  .catalog__results { overflow: visible; }
+  .catalog__header { grid-template-columns: 1fr; gap: 8px; }
+  .catalog__grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 16px;
+  }
+  .case-card { height: auto; }
+  .case-card__cover { height: auto; aspect-ratio: 4 / 3; }
+
+  /* Ореолы центрируем, чтобы не уезжали за экран */
+  .halo--lavender { left: 50%; margin-left: -460px; }
+  .halo--peach { left: 50%; margin-left: -360px; }
+  .halo--centre { left: 50%; margin-left: -225px; }
+}
+
+/* ---------- Телефон (≤700px) ---------- */
+
+@media (max-width: 700px) {
+  /* --- Герой --- */
+  .hero { min-height: 480px; }
+  .hero__name {
+    bottom: 126px;
+    padding-inline: 24px;
+    font-size: 20px; /* Title 3, Unbounded uppercase читается крупнее */
+  }
+  .hero__role { bottom: 96px; font-size: 17px; } /* Body */
+
+  /* --- Док --- */
+  .dock {
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    gap: 2px;
+    height: 52px;
+    padding-inline: 6px;
+    max-width: calc(100vw - 24px);
+  }
+  .dock__actions { gap: 2px; }
+  .dock .glass-button {
+    width: auto;
+    padding-inline: 14px;
+    font-size: 13px; /* Footnote — компактные контролы */
+  }
+
+  /* --- Каталог --- */
+  .catalog { padding: 12px; gap: 12px; }
+  .catalog__sidebar {
+    padding: 18px;
+    gap: 16px;
+    border-radius: 28px;
+  }
+  .sidebar__brand { font-size: 17px; } /* Headline */
+
+  /* Категории и фильтры — выпадающими списками, чтобы не съедали полэкрана */
+  .categories, #tool-filters { display: none; }
+  .category-select, .tool-select {
+    display: block;
+    width: 100%;
+    height: 44px;
+    padding: 0 40px 0 16px;
+    appearance: none;
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    background: var(--glass-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='white' stroke-opacity='.9' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center / 12px;
+    color: rgb(255 255 255 / 95%);
+    font: inherit;
+    font-size: 15px; /* Subhead */
+  }
+  .category-select option, .tool-select option { color: #141414; }
+  .catalog__header h1 { font-size: 22px; } /* Title 2 */
+  .catalog__header p { font-size: 15px; } /* Subhead */
+  .catalog__grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .case-card { padding: 12px 12px 16px; border-radius: 28px; }
+  .case-card__cover { border-radius: 18px; }
+  .case-card__title { font-size: 22px; } /* Title 2 */
+  .case-card__meta { font-size: 15px; } /* Subhead */
+  .sidebar__contact { font-size: 15px; }
+
+  /* --- Страница кейса --- */
+  .case-study__panel {
+    width: calc(100vw - 16px);
+    height: calc(100svh - 16px);
+    border-radius: 24px;
+  }
+  .case-study__bar {
+    margin-inline: 20px;
+    padding-top: 20px;
+  }
+  .case-study__back, .case-study__top { font-size: 15px; } /* Subhead */
+  .case-study__scroll {
+    gap: 24px;
+    margin-right: 0;
+    padding: 16px 16px 40px 20px;
+  }
+  .case-study__scroll::-webkit-scrollbar { width: 0; }
+  .case-study__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .case-study__identity h1 { font-size: 28px; } /* Title 1 */
+  .case-study__subtitle { font-size: 15px; line-height: 1.4; } /* Subhead */
+
+  /* Теги — отдельной строкой, в одну линию с прокруткой */
+  .case-tags {
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .case-tags::-webkit-scrollbar { display: none; }
+  .case-tags .case-tag {
+    flex: none;
+    width: auto;
+    padding-inline: 14px;
+    border-color: rgb(63 87 109 / 22%);
+    background: rgb(63 87 109 / 6%);
+    box-shadow: none;
+    color: var(--case-blue);
+  }
+  .case-tags .case-tag.glass-button--primary {
+    border-color: var(--case-blue);
+    background: var(--case-blue);
+    color: #fff;
+  }
+
+  /* Оглавление превращается в горизонтальную ленту чипсов */
+  .case-study__intro { grid-template-columns: 1fr; gap: 16px; }
+  .case-study__intro > nav { min-width: 0; }
+  .case-study__intro h2 { font-size: 20px; } /* Title 3 */
+  .case-study__menu {
+    display: flex;
+    gap: 8px;
+    width: auto;
+    margin: 8px 0 0;
+    padding: 0 0 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Фейд справа — подсказка, что лента скроллится */
+    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  }
+  .case-study__menu::-webkit-scrollbar { display: none; }
+  .case-study__menu li { flex: none; }
+  .case-study__section-link {
+    min-height: 40px;
+    padding-inline: 14px;
+    border-color: rgb(63 87 109 / 22%);
+    border-radius: 20px;
+    font-size: 15px; /* Subhead */
+    white-space: nowrap;
+  }
+  .case-study__section-link::after { content: none; }
+
+  .case-section__title { font-size: 22px; } /* Title 2 */
+  .case-section__text, .case-section__list {
+    font-size: 17px; /* Body — канон HIG */
+    line-height: 1.55;
+  }
+  .case-section__list { padding-inline-start: 20px; }
+  .case-study__resource { font-size: 15px; min-height: 44px; }
+
+  /* --- Галереи --- */
+  .case-gallery, .case-gallery--mosaic { grid-template-columns: minmax(0, 1fr); }
+  .case-gallery--overview { grid-template-rows: none; grid-auto-rows: auto; }
+  .case-gallery--overview .case-gallery__slot { aspect-ratio: 4 / 3; }
+  .case-gallery--mosaic { grid-template-rows: none; }
+  .case-gallery--mosaic .case-gallery__slot:first-child {
+    grid-row: auto;
+    border-radius: 18px;
+  }
+  .case-gallery--portraits {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+    gap: 12px;
+  }
+  .case-gallery__caption { font-size: 13px; } /* Footnote */
+
+  /* --- Просмотрщик медиа --- */
+  .case-viewer {
+    width: calc(100vw - 16px);
+    max-height: calc(100svh - 16px);
+    padding: 12px;
+    border-radius: 20px;
+  }
+  .case-viewer__stage { padding-top: 20px; }
+  .case-viewer__stage :is(img, video) { max-height: 60svh; }
+  .case-viewer__caption { font-size: 15px; }
+
+  /* --- Диалог «Написать» --- */
+  .contact-dialog {
+    width: min(680px, calc(100vw - 16px));
+    height: min(680px, calc(100svh - 32px));
+    border-radius: 24px;
+  }
+  .contact__title { top: 28px; inset-inline: 24px; font-size: 15px; }
+  .dialog-close { top: 14px; right: 16px; }
+  .contact__slider {
+    bottom: max(48px, 12%);
+    width: calc(100% - 40px);
+    min-height: 72px;
+    padding-right: 24px;
+    font-size: 15px; /* Subhead — длинный текст влезает без обрезки */
+  }
+  .contact__handle { width: 60px; height: 60px; }
+
+  /* --- Диалог «Обо мне» --- */
+  .about-dialog {
+    width: min(680px, calc(100vw - 16px));
+    padding: 40px 24px 28px;
+    border-radius: 24px;
+  }
+  .about-dialog h2 {
+    margin: 14px 0 18px;
+    font-size: 28px; /* Title 1 */
+    line-height: 1.2;
+  }
+  .about-dialog p { max-width: none; font-size: 17px; } /* Body */
+}
