@@ -1,7 +1,7 @@
 import { buttonRow, caseCard, filterGroup, glassButton, setupDialog } from './components.js';
 import { categories, projects, telegramUrl } from './portfolio-data.js';
 import { caseStudies, caseUrl } from './case-studies.js';
-import { setupCaseStudy } from './case-study.js?v=2';
+import { setupCaseStudy } from './case-study.js';
 
 const home = document.querySelector('#home');
 const catalog = document.querySelector('#cases');
@@ -29,16 +29,42 @@ document.querySelector('#sidebar-contact-action').append(
 );
 
 const toolFilters = document.querySelector('#tool-filters');
+// На телефоне фильтры инструментов переключаются выпадающим списком (см. responsive.css).
+const toolSelect = document.createElement('select');
+toolSelect.className = 'category-select tool-select';
+toolSelect.setAttribute('aria-label', 'Инструменты');
+toolFilters.after(toolSelect);
+toolSelect.addEventListener('change', () => selectTool(toolSelect.value));
+
+function selectTool(value) {
+  selectedTool = value;
+  toolSelect.value = value;
+  for (const control of toolFilters.querySelectorAll('button')) {
+    control.setAttribute('aria-pressed', String(control.textContent === value));
+  }
+  results.scrollTop = 0;
+  renderCases();
+}
 const pluralRules = new Intl.PluralRules('ru');
 const countLabels = { one: 'проект', few: 'проекта', many: 'проектов', other: 'проекта' };
 let category = categories[0];
 let selectedTool = all;
 
 function renderCases() {
-  const matches = projects.filter(project =>
-    project.category === category.id &&
+  let matches = projects.filter(project =>
+    (category.id === 'all' || project.category === category.id) &&
     (selectedTool === all || project.tools.includes(selectedTool))
   );
+  // Кейс может числиться в нескольких направлениях — в All показываем один раз.
+  if (category.id === 'all') {
+    const seen = new Set();
+    matches = matches.filter(project => {
+      const key = project.caseId ?? project.title;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
   count.textContent = `${matches.length} ${countLabels[pluralRules.select(matches.length)]}`;
 
   if (matches.length) {
@@ -51,7 +77,7 @@ function renderCases() {
 
   const empty = document.createElement('p');
   empty.className = 'visually-hidden';
-  empty.textContent = projects.some(project => project.category === category.id)
+  empty.textContent = projects.some(project => category.id === 'all' || project.category === category.id)
     ? 'По выбранным фильтрам проектов нет.'
     : 'Кейсы появятся позже.';
   const placeholders = Array.from({ length: 4 }, () => caseCard());
@@ -61,6 +87,7 @@ function renderCases() {
 function renderCategory(nextCategory) {
   category = nextCategory;
   catalogTitle.textContent = `${category.label} / Избранные работы`;
+  categorySelect.value = category.id;
 
   for (const link of categoryNav.querySelectorAll('a')) {
     const active = link.hash === `#cases/${category.id}`;
@@ -69,11 +96,14 @@ function renderCategory(nextCategory) {
   }
 
   selectedTool = all;
-  filterGroup(toolFilters, 'Инструменты', category.toolRows, all, value => {
-    selectedTool = value;
-    results.scrollTop = 0;
-    renderCases();
-  });
+  filterGroup(toolFilters, 'Инструменты', category.toolRows, all, selectTool);
+  toolSelect.replaceChildren(...category.toolRows.flat().map(value => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    return option;
+  }));
+  toolSelect.value = all;
 
   results.scrollTop = 0;
   renderCases();
@@ -84,6 +114,21 @@ for (const group of [categories.slice(0, 3), categories.slice(3)]) {
     href: `#cases/${item.id}`, width: item.width,
   }))));
 }
+
+// На телефоне категории переключаются выпадающим списком (см. responsive.css).
+const categorySelect = document.createElement('select');
+categorySelect.className = 'category-select';
+categorySelect.setAttribute('aria-label', 'Направление');
+for (const item of categories) {
+  const option = document.createElement('option');
+  option.value = item.id;
+  option.textContent = item.label;
+  categorySelect.append(option);
+}
+categorySelect.addEventListener('change', () => {
+  location.hash = `#cases/${categorySelect.value}`;
+});
+categoryNav.after(categorySelect);
 
 let currentStudy;
 

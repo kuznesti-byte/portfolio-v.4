@@ -1,6 +1,7 @@
 import { miniCaseStudies } from './mini-case-studies.js';
 import { investFutureCase } from './investfuture-case.js';
 import { mayaReevesCase } from './maya-reeves-case.js';
+import { inzhirCase } from './inzhir-case.js';
 
 function screen(name, alt, caption, layout) {
   return {
@@ -143,7 +144,7 @@ export const dolciCase = {
   ],
 };
 
-export const caseStudies = [dolciCase, investFutureCase, mayaReevesCase, ...miniCaseStudies];
+export const caseStudies = [dolciCase, investFutureCase, mayaReevesCase, inzhirCase, ...miniCaseStudies];
 
 export function caseUrl(caseId) {
   return `#case/${caseId}`;

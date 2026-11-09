@@ -1,11 +1,16 @@
 import { dolciCase } from './case-studies.js';
 import { investFutureCase } from './investfuture-case.js';
 import { mayaReevesCase } from './maya-reeves-case.js';
+import { inzhirCase } from './inzhir-case.js';
 import { miniCaseStudies } from './mini-case-studies.js';
 
 export const telegramUrl = 'https://t.me/AnG0r';
 
 export const categories = [
+  {
+    id: 'all', label: 'Все', width: 64,
+    toolRows: [['Все', 'Figma', 'Tilda', 'Codex'], ['Claude', 'n8n', 'Adobe']],
+  },
   {
     id: 'web', label: 'Web', width: 80,
     toolRows: [['Все', 'Figma', 'Tilda', 'Codex'], ['Claude']],
@@ -47,4 +52,21 @@ export const projects = [
     tools,
     cover: gallery[0].src,
   })),
+  // Иинжир показываем сразу в двух направлениях: Web и Engineer.
+  {
+    caseId: inzhirCase.id,
+    category: 'web',
+    title: inzhirCase.title,
+    format: inzhirCase.format,
+    tools: ['Figma', 'Codex'],
+    cover: inzhirCase.gallery[0].src,
+  },
+  {
+    caseId: inzhirCase.id,
+    category: 'engineer',
+    title: inzhirCase.title,
+    format: inzhirCase.format,
+    tools: ['Codex', 'Claude'],
+    cover: inzhirCase.gallery[0].src,
+  },
 ];
