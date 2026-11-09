@@ -9,7 +9,7 @@ export const telegramUrl = 'https://t.me/AnG0r';
 export const categories = [
   {
     id: 'all', label: 'Все', width: 64,
-    toolRows: [['Все', 'Figma', 'Tilda', 'Codex'], ['Claude', 'n8n', 'Adobe']],
+    toolRows: [['Все', 'Figma', 'Tilda', 'Codex'], ['Claude', 'n8n']],
   },
   {
     id: 'web', label: 'Web', width: 80,
@@ -20,16 +20,8 @@ export const categories = [
     toolRows: [['Все', 'Figma']],
   },
   {
-    id: 'graph', label: 'Graph', width: 88,
-    toolRows: [['Все', 'Figma', 'Adobe']],
-  },
-  {
     id: 'engineer', label: 'Engineer', width: 140,
     toolRows: [['Все', 'n8n', 'Codex', 'Claude']],
-  },
-  {
-    id: 'optimization', label: 'Optimization', width: 160,
-    toolRows: [['Все', 'Figma', 'n8n']],
   },
 ];
 
