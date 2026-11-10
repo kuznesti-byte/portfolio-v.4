@@ -77,11 +77,13 @@ export function setupCaseStudy(view) {
     if (viewer.open) viewer.close();
   }
 
-  function render(study) {
+  function render(study, fromCategory) {
     closeMedia();
     title.textContent = study.title;
     subtitle.textContent = study.subtitle;
-    back.href = `#cases/${study.category}`;
+    // Если кейс открыли из каталога — возвращаем в тот же раздел,
+    // а не в родную категорию кейса (она может быть другой, как у Иинжира).
+    back.href = `#cases/${fromCategory ?? study.category}`;
 
     tags.replaceChildren(...study.tags.map(tag => {
       const style = tag.featured ? 'primary' : 'dock';

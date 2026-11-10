@@ -131,6 +131,9 @@ categorySelect.addEventListener('change', () => {
 categoryNav.after(categorySelect);
 
 let currentStudy;
+// Раздел каталога, откуда открыли кейс — кнопка «Назад» возвращает именно туда.
+// Пока каталог не открывали, остаётся undefined и «Назад» ведёт в родную категорию кейса.
+let lastCategoryId;
 
 function renderRoute(moveFocus = false) {
   const [view, id] = location.hash.slice(1).split('/');
@@ -139,9 +142,13 @@ function renderRoute(moveFocus = false) {
   caseView.hidden = !study;
   catalog.hidden = !showCases;
   home.hidden = showCases || Boolean(study);
-  if (study && study !== currentStudy) casePage.render(study);
+  if (study && study !== currentStudy) casePage.render(study, lastCategoryId);
   if (!study && currentStudy) casePage.closeMedia();
-  if (showCases) renderCategory(categories.find(item => item.id === id) ?? categories[0]);
+  if (showCases) {
+    const nextCategory = categories.find(item => item.id === id) ?? categories[0];
+    lastCategoryId = nextCategory.id;
+    renderCategory(nextCategory);
+  }
   currentStudy = study;
   document.title = study
     ? `${study.title} — Анастасия Кузнецова`
