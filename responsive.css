@@ -220,14 +220,7 @@ h1, h2 {
   .case-gallery__caption { font-size: 13px; } /* Footnote */
 
   /* --- Просмотрщик медиа --- */
-  .case-viewer {
-    width: calc(100vw - 16px);
-    max-height: calc(100svh - 16px);
-    padding: 12px;
-    border-radius: 20px;
-  }
-  .case-viewer__stage { padding-top: 20px; }
-  .case-viewer__stage :is(img, video) { max-height: 60svh; }
+  .case-viewer { padding: 12px 14px 16px; }
   .case-viewer__caption { font-size: 15px; }
 
   /* --- Диалог «Написать» --- */

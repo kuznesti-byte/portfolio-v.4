@@ -35,12 +35,76 @@ export function createMediaViewer(dialog) {
   let items = [];
   let current = 0;
 
+  // Зум картинки: scale 1 — целиком по размеру сцены, до 6x с панорамированием.
+  const ZOOM_MAX = 6;
+  let scale = 1;
+  let tx = 0;
+  let ty = 0;
+  const pointers = new Map();
+  let pinchStart = null;
+
+  const media = () => stage.firstElementChild;
+  const isImage = () => media() instanceof HTMLImageElement;
+
+  function clampPan() {
+    const node = media();
+    if (!node) return;
+    const box = stage.getBoundingClientRect();
+    const maxX = Math.max(0, (node.clientWidth * scale - box.width) / 2 + 48);
+    const maxY = Math.max(0, (node.clientHeight * scale - box.height) / 2 + 48);
+    tx = Math.min(maxX, Math.max(-maxX, tx));
+    ty = Math.min(maxY, Math.max(-maxY, ty));
+  }
+
+  function applyZoom(animate = false) {
+    const node = media();
+    zoomOut.disabled = scale <= 1;
+    zoomIn.disabled = scale >= ZOOM_MAX;
+    zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+    if (!isImage()) return;
+    node.classList.toggle('case-viewer__media--animated', animate);
+    node.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    stage.classList.toggle('is-zoomed', scale > 1);
+  }
+
+  // origin — точка на экране, которая должна остаться под курсором/пальцами.
+  function setZoom(next, origin, animate = false) {
+    if (!isImage()) return;
+    next = Math.min(ZOOM_MAX, Math.max(1, next));
+    if (origin) {
+      const box = stage.getBoundingClientRect();
+      const px = origin.x - (box.left + box.width / 2);
+      const py = origin.y - (box.top + box.height / 2);
+      tx = px - (px - tx) * (next / scale);
+      ty = py - (py - ty) * (next / scale);
+    }
+    scale = next;
+    if (scale === 1) { tx = 0; ty = 0; }
+    clampPan();
+    applyZoom(animate);
+  }
+
+  function resetZoom() {
+    scale = 1;
+    tx = 0;
+    ty = 0;
+    pointers.clear();
+    pinchStart = null;
+    stage.classList.remove('is-zoomed');
+  }
+
   function render() {
     const item = items[current];
+    resetZoom();
     stage.replaceChildren(mediaElement(item));
     caption.textContent = item.caption ?? item.alt ?? '';
-    controls.hidden = items.length < 2;
+    const single = items.length < 2;
+    const zoomable = item.type === 'image';
+    previous.hidden = next.hidden = counter.hidden = single;
+    zoom.hidden = !zoomable;
+    controls.hidden = single && !zoomable;
     counter.textContent = `${current + 1} / ${items.length}`;
+    applyZoom();
   }
 
   function move(step) {
@@ -52,20 +116,88 @@ export function createMediaViewer(dialog) {
   previous.setAttribute('aria-label', 'Предыдущий материал');
   const next = glassButton('→', { onClick: () => move(1) });
   next.setAttribute('aria-label', 'Следующий материал');
+
+  const zoomOut = glassButton('−', { onClick: () => setZoom(scale / 1.4, undefined, true) });
+  zoomOut.setAttribute('aria-label', 'Отдалить');
+  const zoomLevel = glassButton('100%', { onClick: () => setZoom(1, undefined, true) });
+  zoomLevel.setAttribute('aria-label', 'Сбросить масштаб');
+  const zoomIn = glassButton('+', { onClick: () => setZoom(scale * 1.4, undefined, true) });
+  zoomIn.setAttribute('aria-label', 'Приблизить');
+  const zoom = document.createElement('div');
+  zoom.className = 'case-viewer__zoom';
+  zoom.append(zoomOut, zoomLevel, zoomIn);
+
   controls.prepend(previous);
-  controls.append(next);
+  controls.append(zoom, next);
   setupDialog(dialog);
 
-  dialog.addEventListener('keydown', event => {
-    if (items.length < 2 || event.target instanceof HTMLVideoElement) return;
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+  // Колёсико мыши — зум к точке под курсором.
+  stage.addEventListener('wheel', event => {
+    if (!isImage()) return;
     event.preventDefault();
-    move(event.key === 'ArrowLeft' ? -1 : 1);
+    setZoom(scale * Math.pow(1.0015, -event.deltaY), { x: event.clientX, y: event.clientY });
+  }, { passive: false });
+
+  // Двойной клик/тап — переключение 1x ↔ 2.5x.
+  stage.addEventListener('dblclick', event => {
+    if (!isImage()) return;
+    event.preventDefault();
+    setZoom(scale > 1 ? 1 : 2.5, { x: event.clientX, y: event.clientY }, true);
+  });
+
+  // Жесты: один палец — панорама при зуме, два — щипок.
+  stage.addEventListener('pointerdown', event => {
+    if (!isImage()) return;
+    stage.setPointerCapture(event.pointerId);
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinchStart = { distance: Math.hypot(a.x - b.x, a.y - b.y), scale };
+    }
+  });
+  stage.addEventListener('pointermove', event => {
+    const prev = pointers.get(event.pointerId);
+    if (!prev) return;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointers.size === 2 && pinchStart) {
+      const [a, b] = [...pointers.values()];
+      setZoom(pinchStart.scale * Math.hypot(a.x - b.x, a.y - b.y) / pinchStart.distance,
+        { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    } else if (pointers.size === 1 && scale > 1) {
+      tx += event.clientX - prev.x;
+      ty += event.clientY - prev.y;
+      clampPan();
+      applyZoom();
+    }
+  });
+  const endPointer = event => {
+    pointers.delete(event.pointerId);
+    if (pointers.size < 2) pinchStart = null;
+  };
+  stage.addEventListener('pointerup', endPointer);
+  stage.addEventListener('pointercancel', endPointer);
+
+  dialog.addEventListener('keydown', event => {
+    if (event.target instanceof HTMLVideoElement) return;
+    if (event.key === '+' || event.key === '=') {
+      event.preventDefault();
+      setZoom(scale * 1.25, undefined, true);
+    } else if (event.key === '-') {
+      event.preventDefault();
+      setZoom(scale / 1.25, undefined, true);
+    } else if (event.key === '0') {
+      event.preventDefault();
+      setZoom(1, undefined, true);
+    } else if (items.length >= 2 && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+      event.preventDefault();
+      move(event.key === 'ArrowLeft' ? -1 : 1);
+    }
   });
   dialog.addEventListener('close', () => {
     if (dialog.open) return;
     stage.replaceChildren();
     items = [];
+    resetZoom();
   });
 
   return (gallery, index) => {
