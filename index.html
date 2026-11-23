@@ -6,11 +6,12 @@
   <meta name="description" content="Анастасия Кузнецова — визуальный дизайн, интерфейсы и AI-инструменты.">
   <meta name="theme-color" content="#3f5568">
   <title>Анастасия Кузнецова — портфолио</title>
-  <link rel="stylesheet" href="./styles.css?v=3">
+  <link rel="stylesheet" href="./styles.css?v=5">
   <link rel="stylesheet" href="./halo-motion.css">
-  <link rel="stylesheet" href="./case-study.css?v=3">
-  <link rel="stylesheet" href="./responsive.css?v=3">
-  <script type="module" src="./app.js?v=3"></script>
+  <link rel="stylesheet" href="./case-study.css?v=4">
+  <link rel="stylesheet" href="./responsive.css?v=5">
+  <link rel="stylesheet" href="./investfuture-case.css">
+  <script type="module" src="./app.js?v=6"></script>
 </head>
 <body>
   <main>
@@ -44,8 +45,6 @@
           <img src="./assets/logo.svg" width="39" height="39" alt="">
           Анастасия Кузнецова
         </a>
-        <nav id="categories" class="categories" aria-label="Направления"></nav>
-        <div id="tool-filters" class="filters__group" role="group" aria-label="Инструменты"></div>
         <div class="sidebar__contact">
           <p>Есть задача? Давай обсудим.</p>
           <span id="sidebar-contact-action"></span>
@@ -54,7 +53,7 @@
 
       <div class="catalog__results" id="catalog-results">
         <header class="catalog__header">
-          <h1 id="catalog-title" tabindex="-1"></h1>
+          <h1 id="catalog-title" tabindex="-1">Избранные работы</h1>
           <p id="case-count" aria-live="polite"></p>
         </header>
         <div class="catalog__grid" id="case-grid"></div>
@@ -76,7 +75,7 @@
 
       <article class="case-study__panel">
         <div class="case-study__bar">
-          <a class="case-study__back" href="#cases/web">
+          <a class="case-study__back" href="#cases/all">
             <img src="./assets/case-back.svg" width="33" height="7.36396" alt="">
             Назад к кейсам
           </a>

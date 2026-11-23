@@ -1,4 +1,4 @@
-import { caseGallery, createMediaViewer } from './case-media.js';
+import { caseGallery, createMediaViewer } from './case-media.js?v=4';
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -22,16 +22,19 @@ export function setupCaseStudy(view) {
   const title = view.querySelector('#case-study-title');
   const subtitle = view.querySelector('.case-study__subtitle');
   const tags = view.querySelector('.case-tags');
-  const back = view.querySelector('.case-study__back');
   const top = view.querySelector('.case-study__top');
   const scroll = view.querySelector('.case-study__scroll');
   const overview = view.querySelector('.case-study__overview');
   const menu = view.querySelector('.case-study__menu');
+  const menuTitle = view.querySelector('#case-menu-title');
   const sections = view.querySelector('.case-study__sections');
   const viewer = document.querySelector('#case-viewer');
   const openMedia = createMediaViewer(viewer);
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const curtain = view.querySelector('.case-study__backdrop').cloneNode(true);
+  const backdrop = view.querySelector('.case-study__backdrop');
+  const originalBackdrop = [...backdrop.querySelectorAll('img')].map(image => image.getAttribute('src'));
+  const curtain = backdrop.cloneNode(true);
+  const backgroundLayers = [...backdrop.querySelectorAll('img'), ...curtain.querySelectorAll('img')];
   curtain.classList.add('case-study__curtain');
   curtain.hidden = true;
   view.append(curtain);
@@ -74,17 +77,21 @@ export function setupCaseStudy(view) {
   });
 
   function closeMedia() {
+    for (const dialog of [...view.querySelectorAll('dialog[open]')].reverse()) dialog.close();
     if (viewer.open) viewer.close();
   }
 
-  function render(study, fromCategory) {
+  function render(study) {
     closeMedia();
+    view.classList.toggle('case-study--story', Boolean(study.backdrop));
+    const sources = study.backdrop ?? originalBackdrop;
+    backgroundLayers.forEach((image, index) => {
+      const src = sources[index % sources.length];
+      if (image.getAttribute('src') !== src) image.src = src;
+    });
     title.textContent = study.title;
+    menuTitle.textContent = study.menuTitle ?? 'Что было сделано:';
     subtitle.textContent = study.subtitle;
-    // Если кейс открыли из каталога — возвращаем в тот же раздел,
-    // а не в родную категорию кейса (она может быть другой, как у Иинжира).
-    back.href = `#cases/${fromCategory ?? study.category}`;
-
     tags.replaceChildren(...study.tags.map(tag => {
       const style = tag.featured ? 'primary' : 'dock';
       const pill = element('li', `glass-button glass-button--${style} case-tag`, tag.label);
@@ -93,19 +100,35 @@ export function setupCaseStudy(view) {
     }));
     tags.hidden = study.tags.length === 0;
 
-    entries = study.sections.map(item => {
+    const renderBlock = study.createBlockRenderer?.();
+    const rendered = study.sections.map(item => {
       const section = element('section', 'case-section');
+      if (item.id === 'cover-motion') section.classList.add('case-section--cover-note');
       section.id = `case-section-${item.id}`;
       const heading = element('h2', 'case-section__title', item.title);
       heading.tabIndex = -1;
+      if (item.eyebrow) section.append(element('p', 'case-section__eyebrow', item.eyebrow));
       section.append(heading);
       for (const block of item.blocks) {
-        if (block.type === 'media' && block.items.length) {
+        const customBlock = renderBlock?.(block);
+        if (customBlock) {
+          section.append(customBlock);
+        } else if (block.type === 'media' && block.items.length) {
           section.append(caseGallery(block.items, { open: openMedia }));
         } else if (block.type === 'text') {
           const paragraph = element('p', 'case-section__text', block.text);
           if (block.label) paragraph.prepend(element('strong', null, `${block.label}. `));
           section.append(paragraph);
+        } else if (block.type === 'heading') {
+          section.append(element('h3', 'case-section__subheading', block.text));
+        } else if (block.type === 'recording') {
+          const recording = element('aside', 'case-section__recording');
+          recording.append(
+            element('p', 'case-section__eyebrow', 'ЗАПИСЬ ЭКРАНА'),
+            element('h3', 'case-section__subheading', block.title),
+            element('p', 'case-section__text', 'Запись готовится.'),
+          );
+          section.append(recording);
         } else if (block.type === 'list') {
           const list = element('ul', 'case-section__list');
           list.append(...block.items.map(text => element('li', null, text)));
@@ -114,7 +137,8 @@ export function setupCaseStudy(view) {
           section.append(resourceLink(block));
         }
       }
-      const link = element('button', 'case-study__section-link', item.title);
+      if (item.menuLabel === '') return { section };
+      const link = element('button', 'case-study__section-link', item.menuLabel ?? item.title);
       link.type = 'button';
       link.setAttribute('aria-controls', section.id);
       const entry = { link, section, heading };
@@ -122,12 +146,13 @@ export function setupCaseStudy(view) {
       return entry;
     });
 
+    entries = rendered.filter(entry => entry.link);
     menu.replaceChildren(...entries.map(entry => {
       const listItem = document.createElement('li');
       listItem.append(entry.link);
       return listItem;
     }));
-    sections.replaceChildren(...entries.map(entry => entry.section));
+    sections.replaceChildren(...rendered.map(entry => entry.section));
     overview.replaceChildren(caseGallery(study.gallery, { overview: true, open: openMedia }));
     if (study.galleryLink) overview.append(resourceLink(study.galleryLink));
 

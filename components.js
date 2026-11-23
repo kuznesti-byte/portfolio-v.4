@@ -20,35 +20,6 @@ export function glassButton(label, { href, onClick, dialog, width, active, varia
   return control;
 }
 
-export function buttonRow(controls) {
-  const row = document.createElement('div');
-  row.className = 'button-row';
-  row.append(...controls);
-  return row;
-}
-
-const filterWidths = {
-  Все: 52,
-  Figma: 64, Tilda: 64, Codex: 64, Claude: 71.2,
-};
-
-export function filterGroup(container, label, rows, selected, onSelect) {
-  const heading = document.createElement('p');
-  heading.className = 'eyebrow';
-  heading.textContent = label;
-  const buttons = rows.map(row => buttonRow(row.map(value => glassButton(value, {
-    width: filterWidths[value],
-    active: selected === value,
-    onClick: () => {
-      for (const control of container.querySelectorAll('button')) {
-        control.setAttribute('aria-pressed', String(control.textContent === value));
-      }
-      onSelect(value);
-    },
-  }))));
-  container.replaceChildren(heading, ...buttons);
-}
-
 export function caseCard(project) {
   const card = document.querySelector('#case-card-template').content.firstElementChild.cloneNode(true);
   const title = card.querySelector('.case-card__title');

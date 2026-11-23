@@ -1,11 +1,10 @@
-import { buttonRow, caseCard, filterGroup, glassButton, setupDialog } from './components.js';
-import { categories, projects, telegramUrl } from './portfolio-data.js';
-import { caseStudies, caseUrl } from './case-studies.js';
-import { setupCaseStudy } from './case-study.js';
+import { caseCard, glassButton, setupDialog } from './components.js?v=5';
+import { projects, telegramUrl } from './portfolio-data.js?v=6';
+import { caseStudies, caseUrl } from './case-studies.js?v=6';
+import { setupCaseStudy } from './case-study.js?v=6';
 
 const home = document.querySelector('#home');
 const catalog = document.querySelector('#cases');
-const categoryNav = document.querySelector('#categories');
 const results = document.querySelector('#catalog-results');
 const catalogTitle = document.querySelector('#catalog-title');
 const count = document.querySelector('#case-count');
@@ -14,13 +13,12 @@ const contact = document.querySelector('#contact-dialog');
 const about = document.querySelector('#about-dialog');
 const caseView = document.querySelector('#case-study');
 const casePage = setupCaseStudy(caseView);
-const all = 'Все';
 
 setupDialog(contact);
 setupDialog(about);
 
 document.querySelector('#dock-actions').append(
-  glassButton('Кейсы', { href: '#cases/web', width: 112, variant: 'dock' }),
+  glassButton('Кейсы', { href: '#cases/all', width: 112, variant: 'dock' }),
   glassButton('Обо мне', { dialog: about, width: 112, variant: 'dock' }),
   glassButton('Написать', { dialog: contact, width: 138, variant: 'primary' }),
 );
@@ -28,112 +26,19 @@ document.querySelector('#sidebar-contact-action').append(
   glassButton('Написать ↗', { dialog: contact, width: 170 }),
 );
 
-const toolFilters = document.querySelector('#tool-filters');
-// На телефоне фильтры инструментов переключаются выпадающим списком (см. responsive.css).
-const toolSelect = document.createElement('select');
-toolSelect.className = 'category-select tool-select';
-toolSelect.setAttribute('aria-label', 'Инструменты');
-toolFilters.after(toolSelect);
-toolSelect.addEventListener('change', () => selectTool(toolSelect.value));
-
-function selectTool(value) {
-  selectedTool = value;
-  toolSelect.value = value;
-  for (const control of toolFilters.querySelectorAll('button')) {
-    control.setAttribute('aria-pressed', String(control.textContent === value));
-  }
-  results.scrollTop = 0;
-  renderCases();
-}
 const pluralRules = new Intl.PluralRules('ru');
 const countLabels = { one: 'проект', few: 'проекта', many: 'проектов', other: 'проекта' };
-let category = categories[0];
-let selectedTool = all;
 
 function renderCases() {
-  let matches = projects.filter(project =>
-    (category.id === 'all' || project.category === category.id) &&
-    (selectedTool === all || project.tools.includes(selectedTool))
-  );
-  // Кейс может числиться в нескольких направлениях — в All показываем один раз.
-  if (category.id === 'all') {
-    const seen = new Set();
-    matches = matches.filter(project => {
-      const key = project.caseId ?? project.title;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }
-  count.textContent = `${matches.length} ${countLabels[pluralRules.select(matches.length)]}`;
-
-  if (matches.length) {
-    grid.replaceChildren(...matches.map(project => caseCard({
-      ...project,
-      url: project.url ?? (project.caseId ? caseUrl(project.caseId) : undefined),
-    })));
-    return;
-  }
-
-  const empty = document.createElement('p');
-  empty.className = 'visually-hidden';
-  empty.textContent = projects.some(project => category.id === 'all' || project.category === category.id)
-    ? 'По выбранным фильтрам проектов нет.'
-    : 'Кейсы появятся позже.';
-  const placeholders = Array.from({ length: 4 }, () => caseCard());
-  grid.replaceChildren(empty, ...placeholders);
-}
-
-function renderCategory(nextCategory) {
-  category = nextCategory;
-  catalogTitle.textContent = `${category.label} / Избранные работы`;
-  categorySelect.value = category.id;
-
-  for (const link of categoryNav.querySelectorAll('a')) {
-    const active = link.hash === `#cases/${category.id}`;
-    if (active) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
-  }
-
-  selectedTool = all;
-  filterGroup(toolFilters, 'Инструменты', category.toolRows, all, selectTool);
-  toolSelect.replaceChildren(...category.toolRows.flat().map(value => {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = value;
-    return option;
-  }));
-  toolSelect.value = all;
-
+  count.textContent = `${projects.length} ${countLabels[pluralRules.select(projects.length)]}`;
+  grid.replaceChildren(...projects.map(project => caseCard({
+    ...project,
+    url: project.url ?? (project.caseId ? caseUrl(project.caseId) : undefined),
+  })));
   results.scrollTop = 0;
-  renderCases();
 }
-
-for (const group of [categories.slice(0, 3), categories.slice(3)]) {
-  categoryNav.append(buttonRow(group.map(item => glassButton(item.label, {
-    href: `#cases/${item.id}`, width: item.width,
-  }))));
-}
-
-// На телефоне категории переключаются выпадающим списком (см. responsive.css).
-const categorySelect = document.createElement('select');
-categorySelect.className = 'category-select';
-categorySelect.setAttribute('aria-label', 'Направление');
-for (const item of categories) {
-  const option = document.createElement('option');
-  option.value = item.id;
-  option.textContent = item.label;
-  categorySelect.append(option);
-}
-categorySelect.addEventListener('change', () => {
-  location.hash = `#cases/${categorySelect.value}`;
-});
-categoryNav.after(categorySelect);
 
 let currentStudy;
-// Раздел каталога, откуда открыли кейс — кнопка «Назад» возвращает именно туда.
-// Пока каталог не открывали, остаётся undefined и «Назад» ведёт в родную категорию кейса.
-let lastCategoryId;
 
 function renderRoute(moveFocus = false) {
   const [view, id] = location.hash.slice(1).split('/');
@@ -142,13 +47,9 @@ function renderRoute(moveFocus = false) {
   caseView.hidden = !study;
   catalog.hidden = !showCases;
   home.hidden = showCases || Boolean(study);
-  if (study && study !== currentStudy) casePage.render(study, lastCategoryId);
+  if (study && study !== currentStudy) casePage.render(study);
   if (!study && currentStudy) casePage.closeMedia();
-  if (showCases) {
-    const nextCategory = categories.find(item => item.id === id) ?? categories[0];
-    lastCategoryId = nextCategory.id;
-    renderCategory(nextCategory);
-  }
+  if (showCases) renderCases();
   currentStudy = study;
   document.title = study
     ? `${study.title} — Анастасия Кузнецова`

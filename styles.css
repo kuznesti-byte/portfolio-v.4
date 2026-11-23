@@ -186,8 +186,6 @@ img { display: block; }
 }
 .sidebar__brand { gap: 12px; font-size: 16px; line-height: 1.25; }
 .catalog__sidebar .glass-button { backdrop-filter: none; }
-.categories { display: grid; gap: 12px; }
-.filters__group { display: grid; gap: 10px; }
 .button-row { display: flex; flex-wrap: wrap; gap: 12px; }
 .eyebrow { font-size: 12px; line-height: 1.25; opacity: .6; text-transform: uppercase; }
 .sidebar__contact {

@@ -14,7 +14,6 @@ h1, h2 {
 }
 
 /* Выпадающие списки категорий и инструментов — только для телефона */
-.category-select, .tool-select { display: none; }
 
 @media (pointer: coarse) {
   .glass-button { height: 44px; padding-inline: 18px; }
@@ -37,8 +36,6 @@ h1, h2 {
     padding: 22px;
     gap: 18px;
   }
-  .categories { display: flex; flex-wrap: wrap; gap: 12px; }
-  .categories .button-row { gap: 8px; }
   .catalog__results { overflow: visible; }
   .catalog__header { grid-template-columns: 1fr; gap: 8px; }
   .catalog__grid {
@@ -90,22 +87,6 @@ h1, h2 {
   }
   .sidebar__brand { font-size: 17px; } /* Headline */
 
-  /* Категории и фильтры — выпадающими списками, чтобы не съедали полэкрана */
-  .categories, #tool-filters { display: none; }
-  .category-select, .tool-select {
-    display: block;
-    width: 100%;
-    height: 44px;
-    padding: 0 40px 0 16px;
-    appearance: none;
-    border: 1px solid var(--glass-border);
-    border-radius: 22px;
-    background: var(--glass-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='white' stroke-opacity='.9' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center / 12px;
-    color: rgb(255 255 255 / 95%);
-    font: inherit;
-    font-size: 15px; /* Subhead */
-  }
-  .category-select option, .tool-select option { color: #141414; }
   .catalog__header h1 { font-size: 22px; } /* Title 2 */
   .catalog__header p { font-size: 15px; } /* Subhead */
   .catalog__grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }

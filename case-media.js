@@ -219,9 +219,18 @@ export function caseGallery(items, { overview = false, open } = {}) {
   }
   if (items.length === 0) gallery.setAttribute('aria-hidden', 'true');
 
+  const framed = !overview && entries.length && entries.every(item => item.width && item.height);
+  if (framed) {
+    gallery.classList.add('case-gallery--framed');
+    const width = entries.reduce((sum, item) => sum + item.width, 0);
+    gallery.style.setProperty('--frame-width', `${width + (entries.length - 1) * 24}px`);
+    gallery.style.setProperty('--frame-columns', entries.map(item => `minmax(0, ${item.width}fr)`).join(' '));
+  }
+
   for (const [index, item] of entries.entries()) {
     const slot = document.createElement(item ? 'button' : 'div');
     slot.className = 'case-gallery__slot';
+    if (framed) slot.style.setProperty('--frame-ratio', `${item.width} / ${item.height}`);
     if (item) {
       const type = item.type === 'video' ? 'видео' : 'изображение';
       const label = item.caption || item.alt;
